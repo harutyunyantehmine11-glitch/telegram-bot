@@ -1,41 +1,25 @@
 import os
 import sys
-import asyncio
-from aiohttp import web
-import threading
+import logging
 
-# ===========================================
-# ВЕБ-СЕРВЕР ДЛЯ RENDER (ОБЯЗАТЕЛЬНО!)
-# ===========================================
+# ========== ДОБАВЬ ЭТО ==========
+# Настройка логирования для Render
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-async def handle_health(request):
-    """Обработчик для health check"""
-    return web.Response(text='✅ Telegram Bot is running on Render!')
+# Проверка переменных окружения
+TOKEN = os.environ.get('TELEGRAM_TOKEN')
+if not TOKEN:
+    logger.error("❌ TELEGRAM_TOKEN не установлен!")
+    logger.info("Добавь TELEGRAM_TOKEN в Environment на Render")
+    sys.exit(1)
+# ================================
 
-# Создаем веб-приложение
-app = web.Application()
-app.router.add_get('/', handle_health)
-app.router.add_get('/health', handle_health)
-
-# Запускаем веб-сервер в отдельном потоке
-def run_web_server():
-    """Запуск веб-сервера на порту 10000"""
-    try:
-        port = int(os.getenv('PORT', 10000))
-        print(f"🌐 Starting web server on port {port}...")
-        web.run_app(app, host='0.0.0.0', port=port)
-    except Exception as e:
-        print(f"❌ Web server error: {e}")
-        sys.exit(1)
-
-# Запускаем в фоновом потоке
-web_thread = threading.Thread(target=run_web_server, daemon=True)
-web_thread.start()
-
-# Ждем немного чтобы сервер успел запуститься
-import time
-time.sleep(2)
-print("✅ Web server is running")
+# Твой остальной код НИЖЕ...
+bot = telebot.TeleBot(TOKEN)
 
 # ===========================================
 # ВАШ ОРИГИНАЛЬНЫЙ КОД НИЖЕ
@@ -738,4 +722,17 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
+
     asyncio.run(main())
+
+# ========== ДОБАВЬ В КОНЕЦ ==========
+if __name__ == '__main__':
+    logger.info("🤖 Бот запускается на Render...")
+    logger.info(f"Токен: {TOKEN[:10]}...")  # Показываем только часть токена
+    
+    try:
+        bot.infinity_polling()
+    except Exception as e:
+        logger.error(f"❌ Ошибка: {e}")
+        time.sleep(5)  # Пауза перед перезапуском
+# ====================================
